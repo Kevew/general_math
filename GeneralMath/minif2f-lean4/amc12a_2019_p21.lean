@@ -8,20 +8,20 @@ import Mathlib.Algebra.BigOperators.Finprod
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Tactic.IntervalCases
 
--- Basically, works besides some tedious lemmas I need to show
 theorem amc12a_2019_p21 (z : ℂ) (h₀ : z = (1 + Complex.I) / Real.sqrt 2) : (∑ k ∈ Finset.Icc 1 12, (z^(k^2))) * (∑ k ∈ Finset.Icc 1 12, (1 / z^(k^2))) = 36 := by {
   have h1: z = Complex.cos (Real.pi /4) + Complex.sin (Real.pi /4) * Complex.I := by {
     rw [h₀]
     calc  (1 + Complex.I) / ↑√2
     _ = 1 / ↑√2 * 1 + 1 / ↑√2 * 1 * (Complex.I) := by ring
     _ = 1 / ↑√2 * √2/√2 + 1 / ↑√2 * √2/√2 * (Complex.I) := by norm_num
-    _ = √2 / 2 + √2 / ↑2 * (Complex.I):= by sorry
+    _ = √2 / 2 + √2 / ↑2 * (Complex.I):= by sorry -- Ye, i dunno what ot put here. This should be trivial
     _ = Real.cos (Real.pi /4) + Real.sin (Real.pi /4) * (Complex.I) := by norm_num
     _ = Complex.cos (Real.pi /4) + Complex.sin (Real.pi /4) * Complex.I := by {
       rw [Complex.ofReal_cos, Complex.ofReal_sin]
       simp only [Complex.ofReal_div, Complex.ofReal_ofNat]
     }
   }
+
   have h2: ∀ k : ℕ, z ^ k = z ^ (k + 8) := by {
     intro k
     rw [h1]
@@ -95,12 +95,34 @@ theorem amc12a_2019_p21 (z : ℂ) (h₀ : z = (1 + Complex.I) / Real.sqrt 2) : (
       simp only [Finset.mem_insert, Finset.mem_singleton] at h3
       exact h3
     }
+    have t1: z ^ 4 = -1 := by {
+      rw [h1]
+      calc (Complex.cos (↑Real.pi / 4) + Complex.sin (↑Real.pi / 4) * Complex.I) ^ 4
+      _ = (Complex.cos (4 * (↑Real.pi / 4)) + Complex.sin (4 * (↑Real.pi / 4)) * Complex.I) := by apply Complex.cos_add_sin_mul_I_pow 4 (Real.pi / 4)
+      _ = (Complex.cos (↑Real.pi) + Complex.sin (↑Real.pi) * Complex.I) := by ring_nf
+      _ = -1 + 0 * Complex.I := by simp only [Complex.cos_pi, Complex.sin_pi, zero_mul, add_zero]
+      _ = -1 := by norm_num
+    }
     rcases h₃_or with p1 | p2 | p3
-    · rw [p1, h1]
+    · rw [p1]
       norm_num
-      sorry
-    · sorry
-    · sorry
+      rw [t1]
+    · rw [p2]
+      have t2: z ^ 4 = z ^ 6 ^ 2 := by {
+        symm
+        calc z ^ 6 ^ 2
+        _ = z ^ (4 + 8 * 4) := by norm_num
+        _ = z ^ 4 := by rw [← pow_mod8 4 4]
+      }
+      rw [← t2, t1]
+    · rw [p3]
+      have t2: z ^ 4 = z ^ 10 ^ 2 := by {
+        symm
+        calc z ^ 10 ^ 2
+        _ = z ^ (4 + 8 * 12) := by norm_num
+        _ = z ^ 4 := by rw [← pow_mod8 4 12]
+      }
+      rw [← t2, t1]
   }
 
   have s₃ : ∀ k ∈ ({3, 7, 11}: Finset ℕ), z ^ (k ^ 2) = z := by {
@@ -109,12 +131,32 @@ theorem amc12a_2019_p21 (z : ℂ) (h₀ : z = (1 + Complex.I) / Real.sqrt 2) : (
       simp only [Finset.mem_insert, Finset.mem_singleton] at h3
       exact h3
     }
+    have t1: z ^ 9 = z := by {
+      calc z ^ 9
+      _ = z ^ (1 + 8 * 1) := by norm_num
+      _ = z ^ 1 := by rw [← h2]
+      _ = z := by ring
+    }
     rcases h₃_or with p1 | p2 | p3
-    · rw [p1, h1]
+    · rw [p1]
       norm_num
-      sorry
-    · sorry
-    · sorry
+      rw [t1]
+    · rw [p2]
+      have t2: z ^ 9 = z ^ 7 ^ 2 := by {
+        symm
+        calc z ^ 7 ^ 2
+        _ = z ^ (9 + 8 * 5) := by norm_num
+        _ = z ^ 9 := by rw [← pow_mod8 9]
+      }
+      rw [← t2, t1]
+    · rw [p3]
+      have t2: z ^ 9 = z ^ 11 ^ 2 := by {
+        symm
+        calc z ^ 11 ^ 2
+        _ = z ^ (9 + 8 * 14) := by norm_num
+        _ = z ^ 9 := by rw [← pow_mod8 9]
+      }
+      rw [← t2, t1]
   }
 
   have s₄  : ∀ k ∈ ({4, 8, 12}: Finset ℕ), z ^ (k ^ 2) = 1 := by {
@@ -123,24 +165,107 @@ theorem amc12a_2019_p21 (z : ℂ) (h₀ : z = (1 + Complex.I) / Real.sqrt 2) : (
       simp only [Finset.mem_insert, Finset.mem_singleton] at h3
       exact h3
     }
+    have t1: z ^ 16 = 1 := by {
+      rw [h1]
+      have t2: Complex.cos (4 * ↑Real.pi) = 1 := by {
+        calc Complex.cos (4 * ↑Real.pi)
+        _ = Complex.cos (2 * ↑Real.pi + 2 * ↑Real.pi) := by ring
+        _ = Complex.cos (2 * ↑Real.pi) := by rw [← Complex.cos_add_two_pi (2 * ↑Real.pi)]
+        _ = Complex.cos (0 + 2 * ↑Real.pi) := by ring
+        _ = Complex.cos 0 := by rw [← Complex.cos_add_two_pi 0]
+        _ = 1 := by simp
+      }
+      have t3: Complex.sin (4 * ↑Real.pi) = 0 := by {
+        calc Complex.sin (4 * ↑Real.pi)
+        _ = Complex.sin (2 * ↑Real.pi + 2 * ↑Real.pi) := by ring
+        _ = Complex.sin (2 * ↑Real.pi) := by rw [← Complex.sin_add_two_pi (2 * ↑Real.pi)]
+        _ = Complex.sin (0 + 2 * ↑Real.pi) := by ring
+        _ = Complex.sin 0 := by rw [← Complex.sin_add_two_pi 0]
+        _ = 0 := by simp
+      }
+      calc (Complex.cos (↑Real.pi / 4) + Complex.sin (↑Real.pi / 4) * Complex.I) ^ 16
+      _ = (Complex.cos (16 * (↑Real.pi / 4)) + Complex.sin (16 * (↑Real.pi / 4)) * Complex.I) := by apply Complex.cos_add_sin_mul_I_pow 16 (Real.pi / 4)
+      _ = (Complex.cos (4 * ↑Real.pi) + Complex.sin (4 * ↑Real.pi) * Complex.I) := by ring_nf
+      _ = 1 + 0 * Complex.I := by rw [t2, t3]
+      _ = 1 := by norm_num
+    }
     rcases h₃_or with p1 | p2 | p3
-    · rw [p1, h1]
+    · rw [p1]
       norm_num
-      sorry
-    · sorry
-    · sorry
+      rw [t1]
+    · rw [p2]
+      have t2: z ^ 16 = z ^ 8 ^ 2 := by {
+        symm
+        calc z ^ 8 ^ 2
+        _ = z ^ (16 + 8 * 6) := by norm_num
+        _ = z ^ 16 := by rw [← pow_mod8 16]
+      }
+      rw [← t2, t1]
+    · rw [p3]
+      have t2: z ^ 16 = z ^ 12 ^ 2 := by {
+        symm
+        calc z ^ 12 ^ 2
+        _ = z ^ (16 + 8 * 16) := by norm_num
+        _ = z ^ 16 := by rw [← pow_mod8 16]
+      }
+      rw [← t2, t1]
   }
+  have h3 : z ^ 1 = z := by
+    simp
+  have h4 : z ^ 4 = -1 := by
+    have h6 : z ^ (2 ^ 2) = -1 := s₂ 2 (by simp)
+    simpa using h6
+  have h9 : z ^ 9 = z := by
+    have h10 : z ^ (3 ^ 2) = z := s₃ 3 (by simp)
+    simpa using h10
+  have h16 : z ^ 16 = 1 := by
+    have h17 : z ^ (4 ^ 2) = 1 := s₄ 4 (by simp)
+    simpa using h17
+  have h25 : z ^ 25 = z := by
+    have h26 : z ^ (5 ^ 2) = z := s₁ 5 (by simp)
+    simpa using h26
+  have h36 : z ^ 36 = -1 := by
+    have h37 : z ^ (6 ^ 2) = -1 := s₂ 6 (by simp)
+    simpa using h37
+  have h49 : z ^ 49 = z := by
+    have h50 : z ^ (7 ^ 2) = z := s₃ 7 (by simp)
+    simpa using h50
+  have h64 : z ^ 64 = 1 := by
+    have h65 : z ^ (8 ^ 2) = 1 := s₄ 8 (by simp)
+    simpa using h65
+  have h81 : z ^ 81 = z := by
+    have h82 : z ^ (9 ^ 2) = z := s₁ 9 (by simp)
+    simpa using h82
+  have h100 : z ^ 100 = -1 := by
+    have h101 : z ^ (10 ^ 2) = -1 := s₂ 10 (by simp)
+    simpa using h101
+  have h121 : z ^ 121 = z := by
+    have h122 : z ^ (11 ^ 2) = z := s₃ 11 (by simp)
+    simpa using h122
+  have h144 : z ^ 144 = 1 := by
+    have h145 : z ^ (12 ^ 2) = 1 := s₄ 12 (by simp)
+    simpa using h145
   have t1: ∑ k ∈ Finset.Icc 1 12, z ^ k ^ 2 = 6 * z := by {
-    sorry
+    simp only [Nat.reduceAdd, Nat.one_le_ofNat, Finset.sum_Icc_succ_top, Finset.Icc_self,
+      Finset.sum_singleton, one_pow, Nat.reducePow]
+    simp only [h3, h4, h9, h16, h25, h36, h49, h64, h81, h100,
+      h121, h144]
+    ring
   }
   have t2: ∑ k ∈ Finset.Icc 1 12, 1 / z ^ k ^ 2 = 6/z := by {
-    sorry
+    simp only [one_div, Nat.reduceAdd, Nat.one_le_ofNat, Finset.sum_Icc_succ_top, Finset.Icc_self,
+      Finset.sum_singleton, one_pow, pow_one, Nat.reducePow]
+    simp only [h3, h4, h9, h16, h25, h36, h49, h64, h81, h100,
+      h121, h144]
+    ring
   }
   rw [t1, t2]
-  field_simp
-  calc 6 * z * 6 / z
+  have hz1 : z ≠ 0 := by
+    rw [h₀]
+    field_simp [Complex.ext_iff, Real.sqrt_pos.mpr]
+  calc 6 * z * (6 / z)
   _ = 6 * 6 * z / z := by ring
-  _ = 6 * 6 * 1 := by sorry
+  _ = 6 * 6 * 1 := by field_simp [hz1]
   _ = 36 := by norm_num
 }
 
